@@ -6,9 +6,8 @@ namespace SpaceBCE.Core
     public class HangarPhaseState : IState
     {
         private readonly MissionManager _missionManager;
-        private readonly int _sceneIndex = 1; // Índice de 01_Hangar_Preparation en el Build Settings
+        private readonly int _sceneIndex = 1;
 
-        // Inyección de dependencias a través del constructor
         public HangarPhaseState(MissionManager missionManager)
         {
             _missionManager = missionManager;
@@ -16,40 +15,31 @@ namespace SpaceBCE.Core
 
         public void Enter()
         {
-            Debug.Log("[HangarPhaseState] Iniciando Fase C. Cargando Hangar en background...");
+            Debug.Log("[HangarPhaseState] Fase C iniciada. Suscribiendo evento...");
             
-            // Carga la escena del Hangar aditivamente
+            // ¡ESTA ES LA LÍNEA VITAL! Aquí el estado se pone los "auriculares" para escuchar
+            MissionEvents.OnHelmetEquipped += FinishPreparation; 
+            
             _missionManager.LoadPhaseSceneAsync(_sceneIndex);
-            
-            // Aquí te suscribirás a eventos futuros. Ejemplo:
-            // EventBroker.OnHelmetEquipped += FinishPreparation;
         }
 
-        public void Tick()
-        {
-            // Lógica por frame exclusiva del hangar (si fuera necesaria)
-        }
-
-        public void FixedTick()
-        {
-            // Físicas específicas de esta fase
-        }
+        public void Tick() { }
+        public void FixedTick() { }
 
         public void Exit()
         {
-            Debug.Log("[HangarPhaseState] Secuencia completada. Descargando Hangar...");
-            
-            // Libera la memoria borrando el hangar
+            // Siempre quitarse los auriculares al salir
+            MissionEvents.OnHelmetEquipped -= FinishPreparation; 
             _missionManager.UnloadPhaseSceneAsync(_sceneIndex);
-            
-            // Limpieza de eventos
-            // EventBroker.OnHelmetEquipped -= FinishPreparation;
         }
 
-        // Método simulado para probar la transición a la siguiente fase
+        // Este método se ejecutará en el instante que agarres el cubo
         private void FinishPreparation()
         {
-            // _missionManager.ChangeState(new AscentPhaseState(_missionManager));
+            Debug.Log("[HangarPhaseState] ¡Evento escuchado! Cambiando a Fase D...");
+            
+            // ¡ESTA LÍNEA HACE EL CAMBIO!
+            _missionManager.ChangeState(new AscentPhaseState(_missionManager));
         }
     }
 }
